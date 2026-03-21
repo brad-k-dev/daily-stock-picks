@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>📈 오늘의 강력 추천 주식 | Brad's Daily Picks</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    :root{
+      --bg:#0a0e1a; --bg2:#0f1526; --card:#131929; --cardh:#1a2236;
+      --gold:#f5c842; --green:#00d4a0; --red:#ff4f6e; --blue:#4f8fff;
+      --purple:#a78bfa; --orange:#fb923c; --cyan:#22d3ee;
+      --t1:#e8edf5; --t2:#8896b0; --t3:#4e5f7a;
+      --b1:rgba(255,255,255,0.06); --b2:rgba(255,255,255,0.12);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background:
+      radial-gradient(ellipse 70% 50% at 10% 15%,rgba(79,143,255,.06) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 85%,rgba(0,212,160,.05) 0%,transparent 60%);
+      pointer-events:none;z-index:0;}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+    /* ── Header ── */
+    .hdr{padding:32px 0 18px;border-bottom:1px solid var(--b1);}
+    .hdr-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+    .hdr-left{display:flex;align-items:center;gap:14px;}
+    .logo{width:46px;height:46px;background:linear-gradient(135deg,#f5c842,#fb923c);
+      border-radius:13px;display:flex;align-items:center;justify-content:center;
+      font-size:21px;box-shadow:0 0 22px rgba(245,200,66,.3);}
+    .hdr-title h1{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+    .hdr-title span{font-size:12px;color:var(--t2);}
+    .hdr-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+    .badge-live{background:rgba(0,212,160,.1);border:1px solid rgba(0,212,160,.25);
+      color:var(--green);padding:5px 13px;border-radius:20px;font-size:11.5px;font-weight:500;
+      display:flex;align-items:center;gap:6px;}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    .badge-date{background:var(--bg2);border:1px solid var(--b2);color:var(--t2);
+      padding:5px 13px;border-radius:20px;font-size:11.5px;font-family:'JetBrains Mono',monospace;}
+
+    /* ── Tabs ── */
+    .tab-wrap{margin:20px 0 0;}
+    .tab-bar{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--b1);
+      border-radius:13px;padding:5px;width:fit-content;}
+    .tab-btn{padding:9px 26px;border-radius:9px;border:none;cursor:pointer;
+      font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;
+      transition:all .2s;background:transparent;color:var(--t3);
+      display:flex;align-items:center;gap:7px;}
+    .tab-btn .flag{font-size:15px;}
+    .tab-btn.active{color:var(--t1);}
+    .tab-btn.active.kr{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);box-shadow:0 2px 12px rgba(29,78,216,.35);}
+    .tab-btn.active.us{background:linear-gradient(135deg,#7c2d12,#b91c1c);box-shadow:0 2px 12px rgba(185,28,28,.35);}
+    .tab-btn:not(.active):hover{color:var(--t2);background:rgba(255,255,255,.04);}
+    .tcnt{background:rgba(255,255,255,.1);border-radius:10px;padding:1px 7px;font-size:10.5px;}
+
+    .panel{display:none;} .panel.active{display:block;}
+
+    /* ── Sources ── */
+    .src-strip{margin:16px 0 0;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+    .src-lbl{font-size:10.5px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.8px;}
+    .src-chip{background:var(--bg2);border:1px solid var(--b2);color:var(--t2);font-size:10.5px;
+      padding:3px 9px;border-radius:11px;text-decoration:none;transition:all .2s;display:flex;align-items:center;gap:3px;}
+    .src-chip:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,143,255,.08);}
+
+    /* ── Stats ── */
+    .stats{margin:16px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;}
+    .stat{background:var(--bg2);border:1px solid var(--b1);border-radius:11px;
+      padding:12px 14px;display:flex;align-items:center;gap:10px;}
+    .s-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .s-lbl{font-size:10.5px;color:var(--t3);}
+    .s-val{font-size:15px;font-weight:700;margin-top:1px;}
+
+    /* ── Sub-section ── */
+    .sub-hdr{display:flex;align-items:center;justify-content:space-between;margin:26px 0 14px;}
+    .sub-title{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:700;}
+    .sub-title::before{content:'';width:4px;height:17px;border-radius:2px;
+      background:var(--accent-line,linear-gradient(180deg,var(--gold),var(--orange)));}
+    .sub-badge{font-size:11px;background:var(--bg2);border:1px solid var(--b2);
+      color:var(--t2);padding:3px 10px;border-radius:10px;}
+    .sub-rank{font-size:11px;color:var(--t3);}
+
+    /* divider between stock and ETF sections */
+    .section-div{border:none;border-top:1px dashed rgba(255,255,255,.08);margin:28px 0;}
+
+    /* ── Cards ── */
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    .card{background:var(--card);border:1px solid var(--b1);border-radius:16px;
+      padding:20px 22px;transition:all .22s;position:relative;overflow:hidden;}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:var(--ca,linear-gradient(90deg,var(--gold),var(--orange)));}
+    .card:hover{border-color:var(--b2);background:var(--cardh);transform:translateY(-2px);
+      box-shadow:0 8px 28px rgba(0,0,0,.3);}
+
+    /* ETF cards get a subtle tint */
+    .card.etf-card{background:#0f1a20;}
+    .card.etf-card:hover{background:#132030;}
+
+    .ctop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+    .cleft{display:flex;align-items:center;gap:12px;}
+    .tbox{background:var(--bg2);border:1px solid var(--b2);border-radius:11px;
+      padding:8px 11px;min-width:76px;text-align:center;flex-shrink:0;}
+    .tsym{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;}
+    .texc{font-size:9.5px;color:var(--t3);margin-top:1px;}
+    .cname{font-size:14.5px;font-weight:600;}
+    .csec{font-size:11.5px;color:var(--t2);margin-top:3px;}
+
+    .cright{display:flex;flex-direction:column;align-items:flex-end;gap:7px;}
+    .tbadge{padding:3px 11px;border-radius:18px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+    .t-short{background:rgba(255,79,110,.12);border:1px solid rgba(255,79,110,.25);color:var(--red);}
+    .t-mid  {background:rgba(79,143,255,.12);border:1px solid rgba(79,143,255,.25);color:var(--blue);}
+    .t-mix  {background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);color:var(--purple);}
+    .t-etf  {background:rgba(0,212,160,.12);border:1px solid rgba(0,212,160,.25);color:var(--green);}
+    .pval{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;text-align:right;}
+    .pchg{font-size:11px;font-weight:500;margin-top:2px;text-align:right;}
+    .up{color:var(--green);} .dn{color:var(--red);}
+
+    .conf-row{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+    .conf-lbl{font-size:10.5px;color:var(--t3);width:54px;flex-shrink:0;}
+    .conf-trk{flex:1;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;}
+    .conf-fill{height:100%;border-radius:2px;background:var(--cf,linear-gradient(90deg,var(--gold),var(--orange)));}
+    .conf-num{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;width:30px;text-align:right;}
+
+    .sigs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+    .sig{background:var(--bg2);border:1px solid var(--b1);border-radius:7px;
+      padding:3px 9px;font-size:10.5px;color:var(--t2);display:flex;align-items:center;gap:4px;}
+    .sd{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+
+    .cdiv{border:none;border-top:1px solid var(--b1);margin:12px 0;}
+    .rtitle{font-size:10.5px;color:var(--t3);font-weight:600;text-transform:uppercase;
+      letter-spacing:.8px;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+    .rlist{list-style:none;display:flex;flex-direction:column;gap:5px;}
+    .rlist li{font-size:12.5px;color:var(--t2);line-height:1.55;display:flex;align-items:flex-start;gap:7px;}
+    .rlist li::before{content:'▸';color:var(--gold);font-size:9.5px;margin-top:3px;flex-shrink:0;}
+
+    .csrcs{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
+    .csrc{background:rgba(79,143,255,.06);border:1px solid rgba(79,143,255,.14);
+      color:#6fa3ff;font-size:9.5px;padding:2px 7px;border-radius:7px;font-weight:500;}
+
+    .rnum{position:absolute;top:16px;right:20px;font-family:'JetBrains Mono',monospace;
+      font-size:42px;font-weight:800;color:rgba(255,255,255,.025);line-height:1;
+      pointer-events:none;user-select:none;}
+
+    /* ── Disclaimer / Footer ── */
+    .disc{margin:24px 0 14px;padding:13px 17px;background:rgba(245,200,66,.04);
+      border:1px solid rgba(245,200,66,.12);border-radius:11px;
+      font-size:11.5px;color:var(--t3);line-height:1.65;}
+    .disc strong{color:var(--gold);}
+    .ftr{border-top:1px solid var(--b1);padding:16px 0 26px;text-align:center;font-size:11.5px;color:var(--t3);}
+    .ftr a{color:var(--blue);text-decoration:none;}
+    strong{color:var(--t1);font-weight:600;}
+  </style>
+</head>
+<body>
+
+<div id="main-content">
+<div class="wrap">
+
+<!-- ── Header ── -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-left">
+      <div class="logo">📈</div>
+      <div class="hdr-title">
+        <h1>오늘의 강력 추천 주식</h1>
+        <span>Brad's Daily Stock Intelligence · 국내 주식/ETF + 해외 주식/ETF 통합 분석</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="badge-live"><div class="dot"></div>매일 오전 9시 갱신</div>
+      <div class="badge-date" id="cdate">2026-03-22</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tab-wrap">
+  <div class="tab-bar">
+    <button class="tab-btn kr active" onclick="sw('kr',this)">
+      <span class="flag">🇰🇷</span> 국내 <span class="tcnt">10</span>
+    </button>
+    <button class="tab-btn us" onclick="sw('us',this)">
+      <span class="flag">🇺🇸</span> 해외 <span class="tcnt">10</span>
+    </button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     🇰🇷  국내 패널
+══════════════════════════════════════════ -->
+<div class="panel active" id="p-kr">
+
+  <div class="src-strip">
+    <span class="src-lbl">데이터 출처</span>
+    <a class="src-chip" href="https://www.etfcheck.co.kr" target="_blank">📊 ETFcheck</a>
+    <a class="src-chip" href="https://comp.fnguide.com/SVO2/ASP/SVD_etfRank.asp" target="_blank">📈 FnGuide ETF랭킹</a>
+    <a class="src-chip" href="https://dart.fss.or.kr" target="_blank">📋 DART 공시</a>
+    <a class="src-chip" href="https://data.krx.co.kr" target="_blank">🏛 KRX 데이터</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="s-icon" style="background:rgba(245,200,66,.12);">📈</div>
+      <div><div class="s-lbl">추천 주식</div><div class="s-val" style="color:var(--gold);">5 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(0,212,160,.12);">🌱</div>
+      <div><div class="s-lbl">추천 ETF</div><div class="s-val" style="color:var(--green);">5 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(255,79,110,.12);">⚡</div>
+      <div><div class="s-lbl">단기 모멘텀</div><div class="s-val" style="color:var(--red);">2 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(79,143,255,.12);">🏦</div>
+      <div><div class="s-lbl">중장기 성장</div><div class="s-val" style="color:var(--blue);">8 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(167,139,250,.12);">🕐</div>
+      <div><div class="s-lbl">마지막 갱신</div><div class="s-val" style="color:var(--purple);font-size:12px;">2026-03-22 09:00</div></div></div>
+  </div>
+
+  <!-- ─── 국내 주식 섹션 ─── -->
+  <div class="sub-hdr">
+    <div class="sub-title" style="--accent-line:linear-gradient(180deg,#60a5fa,#3b82f6);">
+      📈 국내 추천 주식 5
+    </div>
+    <span class="sub-rank">신뢰도 순 정렬</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- KR 주식 #1 SK하이닉스 -->
+    <div class="card" style="--ca:linear-gradient(90deg,#00d4a0,#4f8fff)" data-ticker="000660">
+      <div class="rnum">01</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">000660</div><div class="texc">KOSPI</div></div>
+          <div><div class="cname">SK하이닉스</div><div class="csec">반도체 · HBM AI 메모리</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mix">단기 + 중장기</span>
+          <div><div class="pval">≈ 106만원</div><div class="pchg up">▲ 목표가 130만원</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:96%;--cf:linear-gradient(90deg,#00d4a0,#4f8fff)"></div></div>
+        <div class="conf-num">96</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>HBM 글로벌 점유율 1위</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>외국인 순매수 지속</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>증권사 강력매수</div>
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>2026 역대 최대 실적</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>HBM(고대역폭 메모리) 글로벌 시장 <strong>점유율 1위</strong>, NVIDIA·AMD GPU에 독점 공급 구조 — AI 수요 확대와 직결</li>
+        <li>2026년 연간 영업이익 <strong>역대 최대치</strong> 전망, 주요 증권사 목표가 일제히 <strong>130만원</strong>으로 상향 (KRX 실적 데이터)</li>
+        <li>외국인 투자자 <strong>지속 순매수</strong> 구간, 국민연금·기관도 비중 확대 — KRX 수급 데이터 기준 매수 우위</li>
+        <li>DART 공시 기준 자사주 취득 계획, 주주환원 강화 기조 — 코리아 디스카운트 해소 최선호주</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">KRX 데이터</span><span class="csrc">FnGuide</span><span class="csrc">DART 공시</span></div>
+    </div>
+
+    <!-- KR 주식 #2 삼성전자 -->
+    <div class="card" style="--ca:linear-gradient(90deg,#f5c842,#fb923c)" data-ticker="005930">
+      <div class="rnum">02</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">005930</div><div class="texc">KOSPI</div></div>
+          <div><div class="cname">삼성전자</div><div class="csec">반도체 · 스마트폰 · 밸류업</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">≈ 5만원대</div><div class="pchg up">▲ 자사주 소각 16조원</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:88%;--cf:linear-gradient(90deg,#f5c842,#fb923c)"></div></div>
+        <div class="conf-num">88</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>자사주 소각 16조원 공시</div>
+        <div class="sig"><div class="sd" style="background:#fb923c"></div>밸류업 최대 수혜</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>외국인 저점 매수</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>PBR 역대 저점</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>DART 공시 기준 <strong>자사주 소각 16조원 계획 발표</strong> — 주식 수 감소로 EPS·주당가치 직접 상승, 코리아 밸류업 최선호 종목</li>
+        <li>현재 PBR <strong>역대 저점 수준</strong>, 외국인 투자자 저가 매수 유입 중 — KRX 수급 데이터 기준 외국인 순매수 전환 신호</li>
+        <li>HBM3E 양산 체제 구축 중, 파운드리 GAA 공정 안정화 — 하반기 반도체 실적 회복 기대로 <strong>주가 선행 반등 가능</strong></li>
+        <li>FnGuide 2026~2027년 실적 회복 컨센서스 형성, 주요 증권사 <strong>목표가 7만원 이상</strong>으로 현재가 대비 상승 여력 충분</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">DART 공시</span><span class="csrc">KRX 데이터</span><span class="csrc">FnGuide</span></div>
+    </div>
+
+    <!-- KR 주식 #3 한화에어로스페이스 -->
+    <div class="card" style="--ca:linear-gradient(90deg,#818cf8,#a78bfa)" data-ticker="012450">
+      <div class="rnum">03</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">012450</div><div class="texc">KOSPI</div></div>
+          <div><div class="cname">한화에어로스페이스</div><div class="csec">방산 · 우주항공 · K-방산 수출</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">방산 대장주</div><div class="pchg up">▲ 시총 1년 +20조</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:91%;--cf:linear-gradient(90deg,#818cf8,#a78bfa)"></div></div>
+        <div class="conf-num">91</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>K-방산 수출 급증</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>시총 1년 +20조</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>우주사업 고성장</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>기관 매수 집중</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>폴란드·사우디 등 K-방산 수출 계약 연속 체결, <strong>수주잔고 사상 최대</strong> — DART 대규모 수주 공시 지속 확인</li>
+        <li>2025~2026년 시가총액 <strong>1년 새 20조원 이상 급증</strong>, 코스피 내 시총 순위 급부상 (KRX 시총 데이터)</li>
+        <li>항공엔진·우주발사체 사업부 고성장, 누리호 상업화 수혜 — 중장기 신성장 동력 확보로 밸류에이션 재평가 진행 중</li>
+        <li>FnGuide 기준 2026~2027년 연평균 EPS 성장률 <strong>30%+</strong> 예상, 기관 목표가 지속 상향 중</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">DART 공시</span><span class="csrc">KRX 데이터</span><span class="csrc">FnGuide</span></div>
+    </div>
+
+    <!-- KR 주식 #4 삼성바이오로직스 -->
+    <div class="card" style="--ca:linear-gradient(90deg,#ff4f6e,#f97316)" data-ticker="207940">
+      <div class="rnum">04</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">207940</div><div class="texc">KOSPI</div></div>
+          <div><div class="cname">삼성바이오로직스</div><div class="csec">바이오 · 위탁생산 CDMO</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">CDMO 글로벌 2위</div><div class="pchg up">▲ 수주잔고 최대</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:85%;--cf:linear-gradient(90deg,#ff4f6e,#f97316)"></div></div>
+        <div class="conf-num">85</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#ff4f6e"></div>대형 수주 공시 지속</div>
+        <div class="sig"><div class="sd" style="background:#f97316"></div>5공장 증설 완료</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>안정적 이익 성장</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>글로벌 CMO 시장 <strong>2위</strong>, 대규모 수주 계약 연속 체결 — DART 공시 기준 수주잔고 사상 최대</li>
+        <li>5공장 신설 투자로 생산능력 대폭 확대, 2027년까지 CAPA 증설 계획 공시 완료 — 중장기 외형 성장 담보</li>
+        <li>FnGuide 기준 바이오 섹터 내 <strong>가장 안정적 실적 가시성</strong>, 매수 의견 유지</li>
+        <li>KRX 데이터 기준 외국인 비중 확대 중, <strong>리스크 대비 수익률 최우수</strong> 바이오주</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">DART 공시</span><span class="csrc">FnGuide</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+    <!-- KR 주식 #5 현대차 -->
+    <div class="card" style="--ca:linear-gradient(90deg,#00d4a0,#22d3ee)" data-ticker="005380">
+      <div class="rnum">05</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">005380</div><div class="texc">KOSPI</div></div>
+          <div><div class="cname">현대자동차</div><div class="csec">자동차 · 전기차 · 주주환원</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">밸류업 수혜</div><div class="pchg up">▲ 자사주 소각 4조원</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:82%;--cf:linear-gradient(90deg,#00d4a0,#22d3ee)"></div></div>
+        <div class="conf-num">82</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>자사주 소각 4조원 공시</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>PBR 0.6배 저평가</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>배당수익률 4%+</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>DART 공시 기준 <strong>자사주 소각 4조원 계획 발표</strong> — 주식 수 감소로 EPS·주당가치 직접 상승</li>
+        <li>코리아 밸류업 정책 최대 수혜주, <strong>PBR 0.6배</strong> 극심한 저평가 → 재평가 여력 충분 (KRX 밸류에이션)</li>
+        <li>미국 조지아 전기차 공장 본격 가동, 인도 시장 점유율 확대로 <strong>글로벌 판매 성장</strong> 지속</li>
+        <li>FnGuide 2026년 예상 배당수익률 <strong>4%+</strong>, 자사주 환원 합산 시 총주주환원율 업계 최상위</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">DART 공시</span><span class="csrc">KRX 데이터</span><span class="csrc">FnGuide</span></div>
+    </div>
+
+  </div><!-- /주식 grid -->
+
+  <hr class="section-div"/>
+
+  <!-- ─── 국내 ETF 섹션 ─── -->
+  <div class="sub-hdr">
+    <div class="sub-title" style="--accent-line:linear-gradient(180deg,#00d4a0,#22d3ee);">
+      🌱 국내 추천 ETF 5
+    </div>
+    <span class="sub-rank">수익률 · 안정성 순 정렬</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- KR ETF #1 TIGER 반도체TOP10 -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#00d4a0,#4f8fff)" data-ticker="091160">
+      <div class="rnum">01</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">091160</div><div class="texc">KOSPI ETF</div></div>
+          <div><div class="cname">TIGER 반도체TOP10</div><div class="csec">ETF · 국내 반도체 집중 투자</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">반도체 분산</div><div class="pchg up">▲ 1년 수익률 +123%</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:92%;--cf:linear-gradient(90deg,#00d4a0,#4f8fff)"></div></div>
+        <div class="conf-num">92</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>1년 수익률 +123.92%</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>ETFcheck 인기 상위</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>FnGuide 랭킹 최상위</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>SK하이닉스·삼성전자 포함</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>SK하이닉스·삼성전자·한미반도체 등 <strong>국내 반도체 핵심 10종목</strong>에 집중 분산 — 개별 리스크 최소화</li>
+        <li>2026년 1월 기준 최근 <strong>1년 수익률 +123.92%</strong>, ETFcheck·FnGuide 랭킹 수익률 최상위권 지속</li>
+        <li>AI 반도체 수요 폭증 → 국내 반도체 밸류체인 전체 수혜, <strong>섹터 전체에 한 번에 노출</strong> 가능</li>
+        <li>KRX 데이터 기준 거래량 충분·괴리율 낮음 — ETFcheck 괴리율 모니터링 기준 안정적 운용</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">ETFcheck</span><span class="csrc">FnGuide ETF랭킹</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+    <!-- KR ETF #2 ACE AI반도체포커스 -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#f5c842,#fb923c)" data-ticker="476550">
+      <div class="rnum">02</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">476550</div><div class="texc">KOSPI ETF</div></div>
+          <div><div class="cname">ACE AI반도체포커스</div><div class="csec">ETF · AI 반도체 집중 투자</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 단기+중장기</span>
+          <div><div class="pval">AI 테마 집중</div><div class="pchg up">▲ 3개월 수익률 ~100%</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:88%;--cf:linear-gradient(90deg,#f5c842,#fb923c)"></div></div>
+        <div class="conf-num">88</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>3개월 수익률 ~100%</div>
+        <div class="sig"><div class="sd" style="background:#fb923c"></div>AI 반도체 집중</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>ETFcheck 급등 상위</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>3개월 수익률 약 <strong>100%에 육박</strong>하는 공격적 성과 — ETFcheck·FnGuide 단기 수익률 최상위 랭킹 진입</li>
+        <li>NVIDIA 생태계 수혜 국내 기업(한미반도체·에스앤에스텍 등) <strong>AI 반도체 밸류체인 집중</strong> 편입</li>
+        <li>AI 데이터센터 인프라 투자 사이클 2027년까지 지속 예상 — 섹터 성장성 최상위 테마 지속 수혜</li>
+        <li>KRX 데이터 기준 거래량 급증 중, 기관·외국인 <strong>동반 순매수</strong> 진행 구간</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">ETFcheck</span><span class="csrc">FnGuide ETF랭킹</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+    <!-- KR ETF #3 SOL AI반도체소부장 -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#818cf8,#a78bfa)" data-ticker="455850">
+      <div class="rnum">03</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">455850</div><div class="texc">KOSPI ETF</div></div>
+          <div><div class="cname">SOL AI반도체소부장</div><div class="csec">ETF · 반도체 소재·부품·장비</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 단기</span>
+          <div><div class="pval">소부장 집중</div><div class="pchg up">▲ 1주 수익률 +25.97%</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:84%;--cf:linear-gradient(90deg,#818cf8,#a78bfa)"></div></div>
+        <div class="conf-num">84</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>1주 수익률 +25.97%</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>소부장 수혜 직접 노출</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>AI 설비투자 수혜</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>최근 1주 수익률 <strong>+25.97%</strong> 기록 — ETFcheck 기준 단기 모멘텀 최강 ETF 중 하나</li>
+        <li>반도체 소재·부품·장비(소부장) 기업 집중 편입, TSMC·삼성·SK하이닉스 <strong>설비투자 확대</strong>의 직접 수혜</li>
+        <li>AI 인프라 투자 사이클 내 반도체 장비 발주 급증 → 국내 소부장 업체 수주 증가 — FnGuide 섹터 리포트 긍정적</li>
+        <li>KRX 데이터 기준 거래량 단기 급증, 기관 <strong>단기 집중 매수</strong> 패턴 포착</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">ETFcheck</span><span class="csrc">FnGuide ETF랭킹</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+    <!-- KR ETF #4 TIGER 코스닥150바이오테크 -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#ff4f6e,#f97316)" data-ticker="261070">
+      <div class="rnum">04</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">261070</div><div class="texc">KOSDAQ ETF</div></div>
+          <div><div class="cname">TIGER 코스닥150바이오테크</div><div class="csec">ETF · 코스닥 바이오 집중</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">바이오 분산</div><div class="pchg up">▲ 1년 수익률 +50%+</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:81%;--cf:linear-gradient(90deg,#ff4f6e,#f97316)"></div></div>
+        <div class="conf-num">81</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#ff4f6e"></div>1년 수익률 +50%+</div>
+        <div class="sig"><div class="sd" style="background:#f97316"></div>AI 신약개발 수혜</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>금리 인하 수혜</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>최근 1년 수익률 <strong>+50% 이상</strong>, FnGuide ETF 랭킹 바이오 섹터 ETF 중 최상위권 유지</li>
+        <li>AI 기반 신약 개발(Drug Discovery) 가속화 — 코스닥 바이오 기업들의 AI 연계 파이프라인 가치 재평가 중</li>
+        <li>금리 인하 기조 = 바이오 기업 할인율 하락 → 파이프라인 NPV 상승 — <strong>섹터 성장 구조적 호재</strong></li>
+        <li>ETFcheck 기준 거래량 안정, 괴리율 낮음 — 코스닥 바이오 개별 리스크 없이 섹터 전체 노출 가능</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">ETFcheck</span><span class="csrc">FnGuide ETF랭킹</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+    <!-- KR ETF #5 KODEX 2차전지산업 -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#00d4a0,#22d3ee)" data-ticker="305720">
+      <div class="rnum">05</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">305720</div><div class="texc">KOSPI ETF</div></div>
+          <div><div class="cname">KODEX 2차전지산업</div><div class="csec">ETF · 2차전지 밸류체인</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">저점 매수 구간</div><div class="pchg up">▲ 전기차 캐즘 해소</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:78%;--cf:linear-gradient(90deg,#00d4a0,#22d3ee)"></div></div>
+        <div class="conf-num">78</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>전기차 캐즘 해소 기대</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>저점 매수세 유입</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>에코프로·LG엔솔 포함</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>전기차 캐즘 우려 해소로 저점 매수세 유입 중 — KRX 수급 데이터 기준 기관·개인 동반 순매수 포착</li>
+        <li>에코프로비엠·LG에너지솔루션·포스코홀딩스 등 <strong>2차전지 밸류체인 핵심 기업</strong> 포함</li>
+        <li>전고체 배터리 상용화 기대감 + 미국 IRA 수혜 지속 — FnGuide 기준 <strong>2026~2027년 실적 회복</strong> 컨센서스 형성</li>
+        <li>ETFcheck 기준 거래량 충분·가격 저점권 — 중장기 분할 매수 전략에 최적인 <strong>역발상 매수 기회</strong></li>
+      </ul>
+      <div class="csrcs"><span class="csrc">ETFcheck</span><span class="csrc">FnGuide ETF랭킹</span><span class="csrc">KRX 데이터</span></div>
+    </div>
+
+  </div><!-- /ETF grid -->
+</div><!-- /p-kr -->
+
+
+<!-- ══════════════════════════════════════════
+     🇺🇸  해외 패널
+══════════════════════════════════════════ -->
+<div class="panel" id="p-us">
+
+  <div class="src-strip">
+    <span class="src-lbl">데이터 출처</span>
+    <a class="src-chip" href="https://finviz.com" target="_blank">🔍 Finviz</a>
+    <a class="src-chip" href="https://fintel.io" target="_blank">🏦 Fintel</a>
+    <a class="src-chip" href="https://hedgefollow.com" target="_blank">🌿 HedgeFollow</a>
+    <a class="src-chip" href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=4" target="_blank">📋 SEC Form 4</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="s-icon" style="background:rgba(245,200,66,.12);">📈</div>
+      <div><div class="s-lbl">추천 주식</div><div class="s-val" style="color:var(--gold);">5 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(0,212,160,.12);">🌱</div>
+      <div><div class="s-lbl">추천 ETF</div><div class="s-val" style="color:var(--green);">5 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(255,79,110,.12);">⚡</div>
+      <div><div class="s-lbl">단기 모멘텀</div><div class="s-val" style="color:var(--red);">2 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(79,143,255,.12);">🏦</div>
+      <div><div class="s-lbl">중장기 성장</div><div class="s-val" style="color:var(--blue);">8 종목</div></div></div>
+    <div class="stat"><div class="s-icon" style="background:rgba(167,139,250,.12);">🕐</div>
+      <div><div class="s-lbl">마지막 갱신</div><div class="s-val" style="color:var(--purple);font-size:12px;">2026-03-22 09:00</div></div></div>
+  </div>
+
+  <!-- ─── 해외 주식 섹션 ─── -->
+  <div class="sub-hdr">
+    <div class="sub-title" style="--accent-line:linear-gradient(180deg,#fca5a5,#b91c1c);">
+      📈 해외 추천 주식 5
+    </div>
+    <span class="sub-rank">신뢰도 순 정렬</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- US 주식 #1 NVDA -->
+    <div class="card" style="--ca:linear-gradient(90deg,#76e4c4,#4f8fff)" data-ticker="NVDA">
+      <div class="rnum">01</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">NVDA</div><div class="texc">NASDAQ</div></div>
+          <div><div class="cname">NVIDIA Corporation</div><div class="csec">반도체 · AI 컴퓨팅</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mix">단기 + 중장기</span>
+          <div><div class="pval">$175.20</div><div class="pchg up">▲ +47% (1년)</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:95%;--cf:linear-gradient(90deg,#00d4a0,#4f8fff)"></div></div>
+        <div class="conf-num">95</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>헤지펀드 보유 1위</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>기관 매수세 강함</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>Zacks Strong Buy</div>
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>모멘텀 스코어 A</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>전체 기관 펀드의 <strong>2.5% 이상</strong>이 보유 중인 헤지펀드 선호 1위 종목 — HedgeFollow 2026년 최상위</li>
+        <li>AI 데이터센터 HBM 수요 <strong>2026년 35% 이상 성장</strong> 예상, Blackwell 아키텍처 공급 확대</li>
+        <li>Finviz Zacks Momentum Score A, 3월 최상위 모멘텀 주식 — 기술적 강세 완전 유효</li>
+        <li>52주 최저 $86 → 현재 $175, 고점 $212 재도전 가능성 — 단기 스윙 & 중기 보유 모두 유효</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">HedgeFollow</span><span class="csrc">Finviz</span><span class="csrc">Zacks</span></div>
+    </div>
+
+    <!-- US 주식 #2 VRT -->
+    <div class="card" style="--ca:linear-gradient(90deg,#f5c842,#fb923c)" data-ticker="VRT">
+      <div class="rnum">02</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">VRT</div><div class="texc">NYSE</div></div>
+          <div><div class="cname">Vertiv Holdings Co</div><div class="csec">데이터센터 인프라 · 냉각</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-short">단기 모멘텀</span>
+          <div><div class="pval">$269.17</div><div class="pchg up">▲ +191% (1년)</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:91%;--cf:linear-gradient(90deg,#f5c842,#fb923c)"></div></div>
+        <div class="conf-num">91</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>헤지펀드 집중 매수</div>
+        <div class="sig"><div class="sd" style="background:#fb923c"></div>1년 수익률 +191%</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>AI 인프라 테마</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>AI 데이터센터 <strong>냉각·전력관리</strong> 핵심 공급업체 — NVIDIA, Microsoft, Google 데이터센터 수요 직결</li>
+        <li>1년 <strong>+191%</strong>, 3월 11일 역대 최고가($276.78) 후 조정 = 기술적 매수 구간</li>
+        <li>HedgeFollow 기준 다수 빌리어네어 헤지펀드의 <strong>2026년 신규 매수</strong> 리스트 포함</li>
+        <li>AI 인프라 투자 사이클 2027년까지 지속 예상 — 현 조정은 추세 내 되돌림, 상방 추세 유효</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">HedgeFollow</span><span class="csrc">Finviz</span><span class="csrc">Seeking Alpha</span></div>
+    </div>
+
+    <!-- US 주식 #3 META -->
+    <div class="card" style="--ca:linear-gradient(90deg,#818cf8,#a78bfa)" data-ticker="META">
+      <div class="rnum">03</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">META</div><div class="texc">NASDAQ</div></div>
+          <div><div class="cname">Meta Platforms, Inc.</div><div class="csec">소셜미디어 · AI · 광고</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">$597.77</div><div class="pchg up">▲ 고점 대비 -25% 기회</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:87%;--cf:linear-gradient(90deg,#818cf8,#a78bfa)"></div></div>
+        <div class="conf-num">87</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>빌리어네어 픽</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>AI 광고 매출 급성장</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>고점 대비 -25%</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>2026년 최다 빌리어네어 헤지펀드 보유 TOP 5 — Ken Fisher, Soros 등 주요 펀드 대량 보유 (HedgeFollow)</li>
+        <li>AI 광고 타겟팅 & Llama 모델로 수익 강화, <strong>2026년 순이익 두 자릿수 성장</strong> 가이던스 유지</li>
+        <li>52주 고점 $796.25 대비 $598 — <strong>약 25% 할인</strong> 구간, 중장기 매수자 이상적 진입 가격</li>
+        <li>Fintel 기관 매수 데이터 기준 <strong>기관 비중 확대</strong> 중, WhatsApp Business 수익화 본격화</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">HedgeFollow</span><span class="csrc">Fintel</span><span class="csrc">Motley Fool</span></div>
+    </div>
+
+    <!-- US 주식 #4 MSFT -->
+    <div class="card" style="--ca:linear-gradient(90deg,#ff4f6e,#f97316)" data-ticker="MSFT">
+      <div class="rnum">04</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">MSFT</div><div class="texc">NASDAQ</div></div>
+          <div><div class="cname">Microsoft Corporation</div><div class="csec">클라우드 · AI · 엔터프라이즈</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">~$390</div><div class="pchg up">▲ Azure AI 고성장</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:86%;--cf:linear-gradient(90deg,#ff4f6e,#f97316)"></div></div>
+        <div class="conf-num">86</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#ff4f6e"></div>Azure AI 성장 가속</div>
+        <div class="sig"><div class="sd" style="background:#f97316"></div>헤지펀드 상위 보유</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>Copilot 수익화 진행</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>배당+자사주 환원</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>Azure 클라우드 AI 서비스 매출 <strong>분기별 30%+ 성장</strong> 지속 — Fintel 기관 비중 확대 데이터 확인</li>
+        <li>OpenAI 독점 파트너십 + Copilot 엔터프라이즈 침투 확대 — <strong>AI 수익화</strong> 가장 빠른 빅테크</li>
+        <li>HedgeFollow 기준 빌리어네어 헤지펀드 <strong>상위 10개 보유 종목</strong> 다수 포함, 안정적 기관 선호</li>
+        <li>Finviz 기준 PER·PEG 고려 시 빅테크 중 <strong>상대적 저평가</strong>, 배당+자사주 매입 꾸준히 실시</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">HedgeFollow</span><span class="csrc">Fintel</span><span class="csrc">Finviz</span></div>
+    </div>
+
+    <!-- US 주식 #5 FIS -->
+    <div class="card" style="--ca:linear-gradient(90deg,#00d4a0,#22d3ee)" data-ticker="FIS">
+      <div class="rnum">05</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">FIS</div><div class="texc">NYSE</div></div>
+          <div><div class="cname">Fidelity Natl Information</div><div class="csec">핀테크 · 금융 솔루션</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-mid">중장기</span>
+          <div><div class="pval">~$50</div><div class="pchg up">▲ CEO 내부자 매수</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:82%;--cf:linear-gradient(90deg,#00d4a0,#22d3ee)"></div></div>
+        <div class="conf-num">82</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>CEO 직접 매수 $100만+</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>SEC Form 4 포착</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>핀테크 저평가</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li><strong>CEO가 3월 5일 자사주 19,846주($100만 이상)</strong> 공개시장 직접 매수 — Fintel/SEC Form 4 내부자 매수 신호</li>
+        <li>CEO 대규모 공개매수 = 경영진의 <strong>강한 저평가 인식 신호</strong>, 역사적으로 가장 신뢰도 높은 강세 지표</li>
+        <li>글로벌 결제 인프라 & 금융기관 솔루션 선도 기업, 디지털 전환 수혜 — Finviz 기준 PER 저평가 구간</li>
+        <li>Fintel 기준 <strong>내부자 순매수 최상위</strong> 리스트 진입, 기관 투자자 관심 집중 구간</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Fintel</span><span class="csrc">SEC EDGAR</span><span class="csrc">Finviz</span></div>
+    </div>
+
+  </div><!-- /US 주식 grid -->
+
+  <hr class="section-div"/>
+
+  <!-- ─── 해외 ETF 섹션 ─── -->
+  <div class="sub-hdr">
+    <div class="sub-title" style="--accent-line:linear-gradient(180deg,#00d4a0,#22d3ee);">
+      🌱 해외 추천 ETF 5
+    </div>
+    <span class="sub-rank">수익률 · 안정성 순 정렬</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- US ETF #1 QQQ -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#76e4c4,#4f8fff)" data-ticker="QQQ">
+      <div class="rnum">01</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">QQQ</div><div class="texc">NASDAQ ETF</div></div>
+          <div><div class="cname">Invesco QQQ Trust</div><div class="csec">ETF · Nasdaq-100 · 대형 테크</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">~$490</div><div class="pchg up">▲ 10년 수익률 +541%</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:93%;--cf:linear-gradient(90deg,#00d4a0,#4f8fff)"></div></div>
+        <div class="conf-num">93</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>운용자산 $3,950억</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>10년 수익률 +541%</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>기관 선호 ETF 1위</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>보수율 0.18%</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>Nasdaq-100 상위 100개 비금융 종목 추적 — <strong>NVDA·META·MSFT·AAPL·AMZN</strong> 등 AI 리더 분산 투자</li>
+        <li>운용자산 약 $3,950억, 세계 최대 ETF 중 하나 — Finviz 기준 <strong>기관 투자자 선호도 1위</strong>, 유동성 최고</li>
+        <li>10년 총수익률 +541%, 2026년 초 변동성 구간 = <strong>분할 매수 기회</strong> — Motley Fool 3월 최우선 ETF</li>
+        <li>개별 종목 리스크 없이 미국 빅테크·AI 성장 참여 — <strong>해외 포트폴리오 핵심 자산</strong>으로 최적</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Finviz</span><span class="csrc">Motley Fool</span><span class="csrc">ETFdb</span></div>
+    </div>
+
+    <!-- US ETF #2 SOXX -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#f5c842,#fb923c)" data-ticker="SOXX">
+      <div class="rnum">02</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">SOXX</div><div class="texc">NASDAQ ETF</div></div>
+          <div><div class="cname">iShares Semiconductor ETF</div><div class="csec">ETF · 글로벌 반도체 집중</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">반도체 집중</div><div class="pchg up">▲ AI 반도체 테마</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:88%;--cf:linear-gradient(90deg,#f5c842,#fb923c)"></div></div>
+        <div class="conf-num">88</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>NVDA·AMD·AVGO 포함</div>
+        <div class="sig"><div class="sd" style="background:#fb923c"></div>AI 반도체 직접 노출</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>Finviz 섹터 강세</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>NVIDIA·AMD·Broadcom·TSMC 등 <strong>글로벌 반도체 핵심 기업</strong> 집중 편입 — AI 반도체 수요 직접 수혜</li>
+        <li>Finviz 섹터 스크리너 기준 반도체 섹터 <strong>2026년 3월 기관 매수 상위</strong> 섹터 ETF로 분류</li>
+        <li>AI 데이터센터 GPU·HBM·패키징 전체 밸류체인 노출 — <strong>한 종목으로 AI 반도체 생태계 전체</strong> 투자</li>
+        <li>분기별 실적 서프라이즈 빈도 높음 — ETFdb 기준 반도체 ETF 중 <strong>기관 유입 1위</strong>, 유동성 안정</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Finviz</span><span class="csrc">ETFdb</span><span class="csrc">Motley Fool</span></div>
+    </div>
+
+    <!-- US ETF #3 MGK -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#818cf8,#a78bfa)" data-ticker="MGK">
+      <div class="rnum">03</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">MGK</div><div class="texc">NYSE ETF</div></div>
+          <div><div class="cname">Vanguard Mega Cap Growth</div><div class="csec">ETF · 미국 메가캡 성장주</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">보수율 0.05%</div><div class="pchg up">▲ QQQ 대비 초과수익</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:85%;--cf:linear-gradient(90deg,#818cf8,#a78bfa)"></div></div>
+        <div class="conf-num">85</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#a78bfa"></div>QQQ 대비 초과수익</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>보수율 0.05% 초저비용</div>
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>AI 메가캡 집중</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>CRSP US Mega Cap Growth Index 추적 — <strong>약 60~70개 초대형 성장주</strong>에만 집중, AI 리더 최고 비중</li>
+        <li>대부분의 기간 동안 VUG·QQQ 대비 <strong>초과수익</strong> 달성, 보수율 0.05%로 비용 효율 최상위</li>
+        <li>Motley Fool 2026년 3월 <strong>"포트폴리오 7자리 목표" 최우선 ETF</strong> 선정, 장기 투자자에 최적</li>
+        <li>Finviz 기관 유입 데이터 기준 메가캡 성장 ETF 중 <strong>최근 기관 자금 유입 1위</strong> 확인</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Finviz</span><span class="csrc">Motley Fool</span><span class="csrc">Vanguard</span></div>
+    </div>
+
+    <!-- US ETF #4 VUG -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#ff4f6e,#f97316)" data-ticker="VUG">
+      <div class="rnum">04</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">VUG</div><div class="texc">NYSE ETF</div></div>
+          <div><div class="cname">Vanguard Growth ETF</div><div class="csec">ETF · 미국 대형 성장주 광범위</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 중장기</span>
+          <div><div class="pval">보수율 0.03%</div><div class="pchg up">▲ 150+ 성장주 분산</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:83%;--cf:linear-gradient(90deg,#ff4f6e,#f97316)"></div></div>
+        <div class="conf-num">83</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#ff4f6e"></div>보수율 0.03% 최저</div>
+        <div class="sig"><div class="sd" style="background:#f97316"></div>150개 이상 성장주</div>
+        <div class="sig"><div class="sd" style="background:#4f8fff"></div>대형주 분산 안정성</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>CRSP US Large Cap Growth Index 추적 — <strong>150개 이상</strong> 미국 대형 성장주에 광범위 분산, 보수율 업계 최저 0.03%</li>
+        <li>MGK보다 넓은 분산으로 <strong>변동성 낮음</strong> — 안정적 장기 투자자에게 MGK의 안전한 대안</li>
+        <li>Morningstar 2026년 베스트 액티브/패시브 ETF 평가 최고 등급 — 비용 효율성 및 안정성 <strong>업계 톱</strong></li>
+        <li>Finviz 기준 대형 성장 ETF 중 <strong>기관 비중 지속 확대</strong> 중, 장기 포트폴리오 핵심 포지션으로 선택</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Finviz</span><span class="csrc">Morningstar</span><span class="csrc">Vanguard</span></div>
+    </div>
+
+    <!-- US ETF #5 MTUM -->
+    <div class="card etf-card" style="--ca:linear-gradient(90deg,#00d4a0,#22d3ee)" data-ticker="MTUM">
+      <div class="rnum">05</div>
+      <div class="ctop">
+        <div class="cleft">
+          <div class="tbox"><div class="tsym">MTUM</div><div class="texc">NYSE ETF</div></div>
+          <div><div class="cname">iShares MSCI Momentum Factor</div><div class="csec">ETF · 미국 모멘텀 팩터</div></div>
+        </div>
+        <div class="cright">
+          <span class="tbadge t-etf">ETF · 단기+중장기</span>
+          <div><div class="pval">모멘텀 팩터</div><div class="pchg up">▲ 강세장 초과수익</div></div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <div class="conf-lbl">신뢰도</div>
+        <div class="conf-trk"><div class="conf-fill" style="width:80%;--cf:linear-gradient(90deg,#00d4a0,#22d3ee)"></div></div>
+        <div class="conf-num">80</div>
+      </div>
+      <div class="sigs">
+        <div class="sig"><div class="sd" style="background:#00d4a0"></div>모멘텀 팩터 ETF</div>
+        <div class="sig"><div class="sd" style="background:#22d3ee"></div>강세장 초과수익</div>
+        <div class="sig"><div class="sd" style="background:#f5c842"></div>Finviz 모멘텀 상위</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="rtitle">📌 추천 근거</div>
+      <ul class="rlist">
+        <li>MSCI USA Momentum Factor Index 추적 — <strong>최근 6~12개월 가장 강한 상승 모멘텀</strong>의 종목들로 자동 구성</li>
+        <li>강세장·추세 지속 구간에서 S&P500 대비 <strong>지속적 초과수익</strong> — Finviz 모멘텀 스크리너 기반 편입</li>
+        <li>ETFdb 기준 2026년 3월 모멘텀 ETF 카테고리 <strong>인기 상위</strong>, 기관 자금 유입 지속 확인</li>
+        <li>분기별 리밸런싱으로 <strong>트렌드 자동 추종</strong> — AI·빅테크·방산 등 강세 섹터 자동 비중 확대</li>
+      </ul>
+      <div class="csrcs"><span class="csrc">Finviz</span><span class="csrc">ETFdb</span><span class="csrc">iShares</span></div>
+    </div>
+
+  </div><!-- /US ETF grid -->
+</div><!-- /p-us -->
+
+
+<!-- ── Disclaimer / Footer ── -->
+<div class="disc">
+  <strong>⚠️ 투자 주의사항:</strong> 이 페이지는 ETFcheck·FnGuide·DART·KRX(국내) 및 Finviz·Fintel·HedgeFollow·SEC EDGAR(해외) 공개 데이터를 AI가 분석한 정보 제공 목적의 참고 자료입니다. 투자 결정은 본인 판단과 책임 하에 이루어져야 하며 과거 수익률은 미래를 보장하지 않습니다. 이 자료는 투자 권유 또는 금융 조언이 아닙니다. 매일 오전 9시 자동 갱신됩니다.
+</div>
+
+<div class="ftr">
+  Powered by AI · 국내: <a href="https://www.etfcheck.co.kr" target="_blank">ETFcheck</a> · <a href="https://comp.fnguide.com/SVO2/ASP/SVD_etfRank.asp" target="_blank">FnGuide</a> · <a href="https://dart.fss.or.kr" target="_blank">DART</a> · <a href="https://data.krx.co.kr" target="_blank">KRX</a>
+  &nbsp;|&nbsp;
+  해외: <a href="https://finviz.com" target="_blank">Finviz</a> · <a href="https://fintel.io" target="_blank">Fintel</a> · <a href="https://hedgefollow.com" target="_blank">HedgeFollow</a> · <a href="https://www.sec.gov" target="_blank">SEC.gov</a>
+</div>
+
+</div><!-- /wrap -->
+</div><!-- /main-content -->
+
+<script>
+/* ══════════════════════════════════════════════
+     📡 실시간 주가 자동 로딩 (페이지 접근 시마다)
+     Yahoo Finance 공개 API — API 키 불필요
+  ══════════════════════════════════════════════ */
+  const PRICE_MAP = {
+    '000660':'000660.KS','005930':'005930.KS','012450':'012450.KS',
+    '207940':'207940.KS','005380':'005380.KS',
+    '091160':'091160.KS','476550':'476550.KS','455850':'455850.KS',
+    '261070':'261070.KS','305720':'305720.KS',
+    'NVDA':'NVDA','VRT':'VRT','META':'META','MSFT':'MSFT','FIS':'FIS',
+    'QQQ':'QQQ','SOXX':'SOXX','MGK':'MGK','VUG':'VUG','MTUM':'MTUM'
+  };
+
+  function fmtPrice(p, isKR) {
+    if (p == null) return null;
+    return isKR ? Number(p).toLocaleString('ko-KR') + '원' : '$' + Number(p).toFixed(2);
+  }
+  function fmtChg(c) {
+    if (c == null) return null;
+    return (c >= 0 ? '▲ +' : '▼ ') + Math.abs(c).toFixed(2) + '%';
+  }
+
+  async function fetchPrices() {
+    const symbols = Object.values(PRICE_MAP).join(',');
+    const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + symbols;
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      const quotes = (await res.json())?.quoteResponse?.result || [];
+      quotes.forEach(q => {
+        const key = Object.keys(PRICE_MAP).find(k => PRICE_MAP[k] === q.symbol);
+        if (!key) return;
+        const isKR = q.symbol.endsWith('.KS');
+        const price = fmtPrice(q.regularMarketPrice, isKR);
+        const chg   = fmtChg(q.regularMarketChangePercent);
+        const isUp  = (q.regularMarketChangePercent || 0) >= 0;
+        const card  = document.querySelector('[data-ticker="' + key + '"]');
+        if (!card) return;
+        const pEl = card.querySelector('.pval');
+        const cEl = card.querySelector('.pchg');
+        if (pEl && price)  pEl.textContent = price;
+        if (cEl && chg) { cEl.textContent = chg; cEl.className = 'pchg ' + (isUp ? 'up' : 'dn'); }
+      });
+      const ts = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      document.querySelectorAll('[id^="lastUpdated"]').forEach(
+        el => { el.textContent = new Date().toISOString().slice(0,10) + ' ' + ts + ' 🟢실시간'; }
+      );
+    } catch(e) { console.warn('주가 로딩 실패:', e.message); }
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchPrices);
+
+  /* ── 탭 전환 ── */
+  function sw(tab, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('p-' + tab).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  /* ── 오늘 날짜 ── */
+  document.addEventListener('DOMContentLoaded', function () {
+    const el = document.getElementById('cdate');
+    if (el) el.textContent = new Date().toISOString().slice(0, 10);
+  });
+</script>
+</body>
+</html>
