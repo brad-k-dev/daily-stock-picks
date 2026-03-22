@@ -149,6 +149,41 @@
     .ftr{border-top:1px solid var(--b1);padding:16px 0 26px;text-align:center;font-size:11.5px;color:var(--t3);}
     .ftr a{color:var(--blue);text-decoration:none;}
     strong{color:var(--t1);font-weight:600;}
+  
+    /* ── 성과 트래킹 탭 ── */
+    .tab-btn.active.perf{background:linear-gradient(135deg,#134e4a,#0f766e);box-shadow:0 2px 12px rgba(20,184,166,.35);}
+
+    .perf-wrap{padding:28px 0;}
+    .perf-msg{text-align:center;color:var(--t2);padding:60px 0;font-size:14px;}
+
+    .perf-stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px;}
+    .perf-stat-card{flex:1;min-width:130px;background:var(--card);border:1px solid var(--b1);
+      border-radius:14px;padding:18px 20px;text-align:center;}
+    .perf-stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;margin-bottom:4px;}
+    .perf-stat-val.up{color:var(--green);}
+    .perf-stat-val.dn{color:var(--red);}
+    .perf-stat-lbl{font-size:11px;color:var(--t3);}
+
+    .perf-filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+    .pf-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--b2);
+      background:transparent;color:var(--t3);font-size:12px;font-weight:500;cursor:pointer;
+      font-family:'Inter',sans-serif;transition:all .15s;}
+    .pf-btn:hover{color:var(--t2);border-color:var(--b2);}
+    .pf-btn.active{background:var(--bg2);color:var(--t1);border-color:rgba(255,255,255,.2);}
+
+    .perf-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .perf-table th{padding:10px 12px;text-align:left;color:var(--t3);font-size:11px;
+      font-weight:500;border-bottom:1px solid var(--b1);white-space:nowrap;}
+    .perf-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);
+      vertical-align:middle;}
+    .perf-table tr:hover td{background:rgba(255,255,255,.02);}
+    .perf-table td small{color:var(--t3);font-size:11px;}
+    .perf-table .price-cell{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2);}
+    .perf-table .sess-badge{font-size:11px;color:var(--t3);}
+    .ret-up{color:var(--green);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;}
+    .ret-dn{color:var(--red);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;}
+    .ret-null{color:var(--t3);font-size:12px;}
+
   </style>
 </head>
 <body>
@@ -181,6 +216,9 @@
     </button>
     <button class="tab-btn us" onclick="sw('us',this)">
       <span class="flag">🇺🇸</span> 해외 <span class="tcnt">10</span>
+    </button>
+    <button class="tab-btn perf" onclick="sw('perf',this)">
+      <span class="flag">📊</span> 성과 트래킹
     </button>
   </div>
 </div>
@@ -980,6 +1018,68 @@
   </div><!-- /US ETF grid -->
 </div><!-- /p-us -->
 
+<!-- ══════════════════════════════════════════
+     📊  성과 트래킹 패널
+══════════════════════════════════════════ -->
+<div class="panel" id="p-perf">
+<div class="wrap">
+<div class="perf-wrap">
+
+  <div id="perf-loading" class="perf-msg">📡 수익률 데이터 불러오는 중...</div>
+  <div id="perf-empty"   class="perf-msg" style="display:none">📭 아직 추천 이력이 없습니다. 다음 갱신 후 쌓이기 시작합니다!</div>
+
+  <div id="perf-stats" style="display:none">
+    <div class="perf-stat-row">
+      <div class="perf-stat-card">
+        <div class="perf-stat-val" id="stat-total">—</div>
+        <div class="perf-stat-lbl">총 추천 수</div>
+      </div>
+      <div class="perf-stat-card">
+        <div class="perf-stat-val" id="stat-win">—</div>
+        <div class="perf-stat-lbl">1일 승률</div>
+      </div>
+      <div class="perf-stat-card">
+        <div class="perf-stat-val" id="stat-avg">—</div>
+        <div class="perf-stat-lbl">1일 평균 수익률</div>
+      </div>
+      <div class="perf-stat-card">
+        <div class="perf-stat-val up" id="stat-best">—</div>
+        <div class="perf-stat-lbl">최고 수익률</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="perf-filter" class="perf-filter-row" style="display:none">
+    <button class="pf-btn active" onclick="filterPerf('all',this)">전체</button>
+    <button class="pf-btn" onclick="filterPerf('kr',this)">🇰🇷 국내</button>
+    <button class="pf-btn" onclick="filterPerf('us',this)">🇺🇸 해외</button>
+    <button class="pf-btn" onclick="filterPerf('stock',this)">주식</button>
+    <button class="pf-btn" onclick="filterPerf('etf',this)">ETF</button>
+  </div>
+
+  <div id="perf-table-wrap" style="display:none; overflow-x:auto">
+    <table class="perf-table">
+      <thead>
+        <tr>
+          <th>날짜</th>
+          <th>세션</th>
+          <th>구분</th>
+          <th>종목</th>
+          <th>추천가</th>
+          <th>1일</th>
+          <th>1주</th>
+          <th>1개월</th>
+        </tr>
+      </thead>
+      <tbody id="perf-tbody"></tbody>
+    </table>
+  </div>
+
+</div><!-- /perf-wrap -->
+</div><!-- /wrap -->
+</div><!-- /p-perf -->
+
+
 
 <!-- ── Disclaimer / Footer ── -->
 <div class="disc">
@@ -1049,11 +1149,95 @@
   document.addEventListener('DOMContentLoaded', fetchPrices);
 
   /* ── 탭 전환 ── */
+  let _histLoaded = false;
   function sw(tab, btn) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('p-' + tab).classList.add('active');
     btn.classList.add('active');
+    if (tab === 'perf' && !_histLoaded) { _histLoaded = true; loadHistory(); }
+  }
+
+  /* ── 성과 트래킹 ── */
+  let _histData = [];
+
+  async function loadHistory() {
+    try {
+      const r = await fetch('./history.json?_=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status);
+      const data = await r.json();
+      _histData = (data.picks || []).slice().reverse();
+      renderHistory(_histData);
+    } catch(e) {
+      document.getElementById('perf-loading').style.display = 'none';
+      document.getElementById('perf-empty').style.display  = 'block';
+    }
+  }
+
+  function retCell(val) {
+    if (val == null) return '<td class="ret-null">—</td>';
+    const cls  = val >= 0 ? 'ret-up' : 'ret-dn';
+    const sign = val >= 0 ? '+' : '';
+    return `<td class="${cls}">${sign}${val.toFixed(2)}%</td>`;
+  }
+
+  function renderHistory(picks) {
+    document.getElementById('perf-loading').style.display = 'none';
+    if (!picks || picks.length === 0) {
+      document.getElementById('perf-empty').style.display = 'block';
+      return;
+    }
+    const w1d  = picks.filter(p => p.r1d !== null);
+    const wins = w1d.filter(p => p.r1d >= 0).length;
+    const wr   = w1d.length > 0 ? (wins / w1d.length * 100).toFixed(0) : null;
+    const avg  = w1d.length > 0 ? (w1d.reduce((s,p)=>s+p.r1d,0) / w1d.length).toFixed(2) : null;
+    const best = w1d.length > 0 ? Math.max(...w1d.map(p=>p.r1d)).toFixed(2) : null;
+
+    const setVal = (id, txt, cls) => {
+      const el = document.getElementById(id);
+      el.textContent = txt;
+      if (cls) el.className = 'perf-stat-val ' + cls;
+    };
+    setVal('stat-total', picks.length + '개');
+    setVal('stat-win',   wr   !== null ? wr + '%'                      : '—', wr !== null ? (parseFloat(wr)  >= 50 ? 'up':'dn') : '');
+    setVal('stat-avg',   avg  !== null ? (avg>=0?'+':'') + avg + '%'   : '—', avg!== null ? (parseFloat(avg) >= 0  ? 'up':'dn') : '');
+    setVal('stat-best',  best !== null ? '+' + best + '%'              : '—', 'up');
+
+    document.getElementById('perf-stats').style.display      = 'block';
+    document.getElementById('perf-filter').style.display     = 'flex';
+    document.getElementById('perf-table-wrap').style.display = 'block';
+    renderPerfTable(picks);
+  }
+
+  function renderPerfTable(picks) {
+    document.getElementById('perf-tbody').innerHTML = picks.map(p => {
+      const flag  = p.market     === 'kr'    ? '🇰🇷' : '🇺🇸';
+      const atype = p.asset_type === 'etf'   ? 'ETF' : '주식';
+      const sess  = p.session    === 'AM'    ? '오전' : '오후';
+      const price = p.entry_price == null ? '—'
+        : p.currency === 'KRW'
+          ? Number(p.entry_price).toLocaleString('ko-KR') + '원'
+          : '$' + Number(p.entry_price).toFixed(2);
+      return `<tr data-market="${p.market}" data-type="${p.asset_type}">
+        <td>${p.date}</td>
+        <td class="sess-badge">${sess}</td>
+        <td>${flag} ${atype}</td>
+        <td><strong>${p.ticker}</strong><br><small>${p.name}</small></td>
+        <td class="price-cell">${price}</td>
+        ${retCell(p.r1d)}${retCell(p.r1w)}${retCell(p.r1m)}
+      </tr>`;
+    }).join('');
+  }
+
+  function filterPerf(f, btn) {
+    document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#perf-tbody tr').forEach(row => {
+      row.style.display =
+        f === 'all'              ? '' :
+        f === 'kr' || f === 'us' ? (row.dataset.market === f ? '' : 'none') :
+                                   (row.dataset.type   === f ? '' : 'none');
+    });
   }
 
   /* ── 오늘 날짜 ── */

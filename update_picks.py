@@ -1,17 +1,33 @@
 """
 Brad's Daily Stock Picks — GitHub Actions 자동 갱신 스크립트
-매일 오전 9시 KST에 실행되어 index.html을 최신 추천으로 업데이트합니다.
+매일 오전 9시 / 오후 2시 KST에 실행되어 index.html 및 history.json을 업데이트합니다.
 """
 
-import os, re, json, datetime, requests
+import os, re, json, requests
 import anthropic
+from datetime import datetime, timedelta, date, timezone
 
 # ── 설정 ─────────────────────────────────────────────────────
-KST = datetime.timezone(datetime.timedelta(hours=9))
-TODAY = datetime.datetime.now(KST).strftime("%Y-%m-%d")
-TODAY_KR = datetime.datetime.now(KST).strftime("%Y년 %m월 %d일")
+KST = timezone(timedelta(hours=9))
+NOW = datetime.now(KST)
+TODAY = NOW.strftime("%Y-%m-%d")
+TODAY_KR = NOW.strftime("%Y년 %m월 %d일")
+SESSION = "AM" if NOW.hour < 12 else "PM"
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+HISTORY_FILE = "history.json"
+
+# 내부 ticker → Yahoo Finance symbol 매핑
+TICKER_TO_YAHOO = {
+    "000660": "000660.KS", "005930": "005930.KS",
+    "012450": "012450.KS", "207940": "207940.KS",
+    "005380": "005380.KS", "091160": "091160.KS",
+    "476550": "476550.KS", "455850": "455850.KS",
+    "261070": "261070.KS", "305720": "305720.KS",
+}
+
+def yahoo_sym(ticker):
+    return TICKER_TO_YAHOO.get(ticker, ticker)
 
 # ── 주식 데이터 수집 ─────────────────────────────────────────
 def fetch_prices():
@@ -40,13 +56,102 @@ def search_web(query):
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=8
         )
-        # 간단히 텍스트 추출
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(r.text, "lxml")
         texts = [t.get_text()[:200] for t in soup.select(".BNeawe, .VwiC3b, .s3v9rd")[:8]]
         return "\n".join(texts)
     except Exception as e:
         return f"검색 실패: {e}"
+
+# ── 수익률 히스토리 관리 ─────────────────────────────────────
+def load_history():
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"last_updated": "", "picks": []}
+
+def save_history(history):
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+def update_returns(history, prices):
+    """기존 추천 종목의 1일/1주/1개월 수익률 업데이트"""
+    today = NOW.date()
+    updated = 0
+    for pick in history["picks"]:
+        pick_date = date.fromisoformat(pick["date"])
+        days = (today - pick_date).days
+        ysym = yahoo_sym(pick["ticker"])
+        q = prices.get(ysym, {})
+        cur = q.get("regularMarketPrice")
+
+        if not cur or not pick.get("entry_price"):
+            continue
+
+        ret = round((cur - pick["entry_price"]) / pick["entry_price"] * 100, 2)
+
+        if days >= 1 and pick["r1d"] is None:
+            pick["r1d"] = ret
+            updated += 1
+        if days >= 7 and pick["r1w"] is None:
+            pick["r1w"] = ret
+            updated += 1
+        if days >= 30 and pick["r1m"] is None:
+            pick["r1m"] = ret
+            updated += 1
+
+    print(f"  수익률 업데이트: {updated}건")
+    return history
+
+def add_picks_to_history(history, picks_data, prices):
+    """오늘 추천 종목을 히스토리에 추가 (진입가 기록)"""
+    today_str = TODAY
+
+    # 같은 날짜·세션 중복 방지
+    history["picks"] = [
+        p for p in history["picks"]
+        if not (p["date"] == today_str and p.get("session") == SESSION)
+    ]
+
+    section_map = {
+        "kr_stocks": ("kr", "stock"),
+        "kr_etfs":   ("kr", "etf"),
+        "us_stocks": ("us", "stock"),
+        "us_etfs":   ("us", "etf"),
+    }
+
+    added = 0
+    for section, (market, asset_type) in section_map.items():
+        for item in picks_data.get(section, []):
+            ticker = item.get("ticker", "")
+            ysym = yahoo_sym(ticker)
+            q = prices.get(ysym, {})
+            entry_price = q.get("regularMarketPrice")
+
+            history["picks"].append({
+                "id":          f"{today_str}-{SESSION}-{ticker}",
+                "date":        today_str,
+                "session":     SESSION,
+                "market":      market,
+                "asset_type":  asset_type,
+                "ticker":      ticker,
+                "name":        item.get("name", ""),
+                "entry_price": entry_price,
+                "currency":    "KRW" if market == "kr" else "USD",
+                "r1d":  None,
+                "r1w":  None,
+                "r1m":  None,
+            })
+            added += 1
+
+    # 90일 이상 된 데이터 정리
+    cutoff = (NOW.date() - timedelta(days=90)).isoformat()
+    history["picks"] = [p for p in history["picks"] if p["date"] >= cutoff]
+    history["last_updated"] = NOW.isoformat()
+
+    print(f"  히스토리 추가: {added}건 (세션: {SESSION})")
+    return history
 
 # ── Claude AI로 추천 생성 ────────────────────────────────────
 def generate_picks(prices):
@@ -56,16 +161,14 @@ def generate_picks(prices):
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    # 현재 가격 요약
     price_summary = []
     for sym, q in prices.items():
         p = q.get("regularMarketPrice", "N/A")
         chg = q.get("regularMarketChangePercent", 0)
         price_summary.append(f"{sym}: {p} ({chg:+.2f}%)")
 
-    # 웹 검색으로 최신 뉴스 수집
-    kr_news  = search_web(f"국내 주식 오늘 기관 외국인 순매수 {TODAY}")
-    us_news  = search_web(f"US stocks strong buy momentum institutional {TODAY}")
+    kr_news   = search_web(f"국내 주식 오늘 기관 외국인 순매수 {TODAY}")
+    us_news   = search_web(f"US stocks strong buy momentum institutional {TODAY}")
     dart_news = search_web(f"DART 자사주 소각 대규모 수주 공시 {TODAY}")
 
     prompt = f"""오늘 날짜: {TODAY_KR}
@@ -116,7 +219,6 @@ JSON만 반환 (설명 없이):
             messages=[{"role": "user", "content": prompt}]
         )
         raw = msg.content[0].text.strip()
-        # JSON 추출
         m = re.search(r'\{[\s\S]*\}', raw)
         if m:
             return json.loads(m.group())
@@ -140,11 +242,11 @@ FILL_COLORS = [
     "linear-gradient(90deg,#00d4a0,#22d3ee)",
 ]
 TYPE_BADGE = {
-    "단기모멘텀":   ("t-short", "단기 모멘텀"),
-    "중장기":       ("t-mid",   "중장기"),
-    "혼합":         ("t-mix",   "단기 + 중장기"),
-    "ETF중장기":    ("t-etf",   "ETF · 중장기"),
-    "ETF단기중장기":("t-etf",   "ETF · 단기+중장기"),
+    "단기모멘텀":    ("t-short", "단기 모멘텀"),
+    "중장기":        ("t-mid",   "중장기"),
+    "혼합":          ("t-mix",   "단기 + 중장기"),
+    "ETF중장기":     ("t-etf",   "ETF · 중장기"),
+    "ETF단기중장기": ("t-etf",   "ETF · 단기+중장기"),
 }
 
 def make_card(item, rank, is_etf=False, is_kr=False):
@@ -211,8 +313,6 @@ def update_html(picks):
         if not items:
             continue
         grid_html = make_grid(items, is_etf, is_kr)
-
-        # 섹션 구분자: 각 섹션을 <!-- SECTION:kr_stocks --> ... <!-- /SECTION:kr_stocks --> 로 감쌈
         pattern = rf'(<!-- SECTION:{key} -->)([\s\S]*?)(<!-- /SECTION:{key} -->)'
         replacement = rf'\1\n<div class="grid">{grid_html}\n</div>\n\3'
         new_html = re.sub(pattern, replacement, html)
@@ -231,11 +331,16 @@ def update_html(picks):
 
 # ── 메인 ────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print(f"📈 Brad's Daily Picks 갱신 시작 — {TODAY_KR}")
+    print(f"📈 Brad's Daily Picks 갱신 시작 — {TODAY_KR} ({SESSION})")
 
     print("  주가 데이터 수집 중...")
     prices = fetch_prices()
     print(f"  {len(prices)}개 종목 가격 수집 완료")
+
+    # ── 히스토리 업데이트 ──────────────────────────────────
+    print("  수익률 히스토리 업데이트 중...")
+    history = load_history()
+    history = update_returns(history, prices)
 
     print("  AI 추천 생성 중 (Claude API)...")
     picks = generate_picks(prices)
@@ -243,13 +348,16 @@ if __name__ == "__main__":
     if picks:
         print("  HTML 업데이트 중...")
         update_html(picks)
+        history = add_picks_to_history(history, picks, prices)
     else:
         print("  ⚠️  AI 추천 생성 실패 — 기존 HTML 유지 (가격만 실시간 업데이트됨)")
-        # 날짜만 업데이트
         with open("index.html", "r") as f:
             html = f.read()
         html = re.sub(r'\d{4}-\d{2}-\d{2}', TODAY, html, count=3)
         with open("index.html", "w") as f:
             f.write(html)
+
+    save_history(history)
+    print("  ✅ history.json 저장 완료")
 
     print("🎉 완료!")
