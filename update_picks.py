@@ -168,7 +168,10 @@ def generate_picks(prices):
         price_summary.append(f"{sym}: {p} ({chg:+.2f}%)")
 
     kr_news   = search_web(f"국내 주식 오늘 기관 외국인 순매수 {TODAY}")
-    us_news   = search_web(f"US stocks strong buy momentum institutional {TODAY}")
+    us_news      = search_web(f"US stocks strong buy momentum institutional analyst upgrade {TODAY}")
+    tipranks_news = search_web(f"tipranks top analyst picks best stocks buy rating {TODAY}")
+    dataroma_news = search_web(f"dataroma superinvestor guru portfolio buys {TODAY}")
+    macro_news    = search_web(f"tradingeconomics US economic indicators interest rate outlook {TODAY}")
     dart_news = search_web(f"DART 자사주 소각 대규모 수주 공시 {TODAY}")
 
     prompt = f"""오늘 날짜: {TODAY_KR}
@@ -180,7 +183,16 @@ def generate_picks(prices):
 {kr_news[:800]}
 
 최신 해외 뉴스/수급:
-{us_news[:800]}
+{us_news[:600]}
+
+TipRanks 애널리스트 추천:
+{tipranks_news[:400]}
+
+Dataroma 슈퍼인베스터 동향:
+{dataroma_news[:400]}
+
+거시경제 지표 (TradingEconomics):
+{macro_news[:300]}
 
 DART 최신 공시:
 {dart_news[:500]}
@@ -200,7 +212,7 @@ DART 최신 공시:
   "signals": ["신호1", "신호2", "신호3"],
   "reasons": ["근거1 (출처 포함)", "근거2", "근거3", "근거4"],
   "sources": ["ETFcheck", "FnGuide", "DART", "KRX"] // 국내
-             또는 ["Finviz", "Fintel", "HedgeFollow", "SEC EDGAR"] // 해외
+             또는 ["Finviz", "Fintel", "HedgeFollow", "SEC EDGAR", "Dataroma", "TipRanks", "TradingEconomics", "ETF.com"] // 해외 (해당되는 것만)
 }}
 
 JSON만 반환 (설명 없이):
