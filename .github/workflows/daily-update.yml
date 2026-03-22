@@ -2,8 +2,8 @@ name: 📈 Daily Stock Picks Update
 
 on:
   schedule:
-    # 매일 오전 9시 KST (= 00:00 UTC)
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'   # 매일 오전 9시 KST (= 00:00 UTC)
+    - cron: '0 5 * * *'   # 매일 오후 2시 KST (= 05:00 UTC)
   workflow_dispatch:   # 수동 실행 버튼도 활성화
 
 permissions:
